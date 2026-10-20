@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Hiệu Ứng Cánh Hoa Hồng Gió Cuốn Trái Tim 3D - 20/10</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            /* Nền xanh pastel nhạt lãng mạn */
+            background: radial-gradient(circle at 50% 35%, #eaf4f4 0%, #d3e4e1 55%, #b5d5d0 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        canvas {
+            display: block;
+            width: 100vw;
+            height: 100vh;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+
+        /* --- 10 KHUNG ẢNH QUAY TRÒN MỞ RỘNG TOÀN MÀN HÌNH --- */
+        .orbit-photos-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+            pointer-events: none;
+            perspective: 1200px;
+            overflow: hidden;
+        }
+
+        .orbit-photo-card {
+            position: absolute;
+            width: 85px;
+            height: 115px;
+            background: rgba(255, 255, 255, 0.45);
+            backdrop-filter: blur(6px);
+            border: 2px solid rgba(255, 105, 180, 0.6);
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15), 0 0 15px rgba(255, 20, 147, 0.2);
+            overflow: hidden;
+            will-change: transform, opacity;
+        }
+
+        .orbit-photo-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        @media (min-width: 768px) {
+            .orbit-photo-card {
+                width: 115px;
+                height: 150px;
+            }
+        }
+
+        /* --- DÒNG CHỮ TRONG SUỐT (ĐÃ LOẠI BỎ NỀN) --- */
+        .message-container {
+            position: absolute;
+            top: 9%; /* Nằm ở vị trí phía trên trái tim */
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            text-align: center;
+            width: 92%;
+            max-width: 650px;
+            pointer-events: none;
+        }
+
+        .wish-text {
+            color: #b01445;
+            font-size: 22px;
+            font-weight: 700;
+            line-height: 1.4;
+            /* Đã xóa bỏ nền mờ và border, thêm hiệu ứng bóng chữ nổi bật */
+            background: none;
+            backdrop-filter: none;
+            border-radius: 0;
+            box-shadow: none;
+            text-shadow: 0 2px 8px rgba(255, 255, 255, 0.95), 0 0 20px rgba(255, 105, 180, 0.4);
+            opacity: 0;
+            transform: translateY(15px);
+            transition: all 1s cubic-bezier(0.16, 1, 0.3, 1);
+            position: absolute;
+            width: 100%;
+            left: 0;
+            top: 0;
+        }
+
+        @media (min-width: 768px) {
+            .wish-text {
+                font-size: 32px;
+            }
+        }
+
+        .wish-text.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .wish-text.fade-out {
+            opacity: 0;
+            transform: translateY(-15px);
+        }
+
+        .wish-text.ps-style {
+            color: #8c0a32;
+            font-size: 25px;
+            font-weight: 800;
+            text-shadow: 0 2px 10px rgba(255, 255, 255, 0.95), 0 0 25px rgba(255, 20, 147, 0.5);
+        }
+        @media (min-width: 768px) {
+            .wish-text.ps-style {
+                font-size: 36px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- THAY ĐƯỜNG DẪN NHẠC/VIDEO .MP4 -->
+    <video id="bgMedia" src="nhac-nen.mp4" autoplay loop playsinline style="display: none;"></video>
+
+    <!-- 10 KHUNG ẢNH -->
+    <div class="orbit-photos-container" id="orbitContainer">
+        <div class="orbit-photo-card"><img src="https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=300&auto=format&fit=crop" alt="Photo 1"></div>
+        <div class="orbit-photo-card"><img src="https://images.unsplash.com/photo-1526047932273-341f2a7631f9?q=80&w=300&auto=format&fit=crop" alt="Photo 2"></div>
+        <div class="orbit-photo-card"><img src="https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?q=80&w=300&auto=format&fit=crop" alt="Photo 3"></div>
+        <div class="orbit-photo-card"><img src="https://images.unsplash.com/photo-1522748948887-268e3f9422e5?q=80&w=300&auto=format&fit=crop" alt="Photo 4"></div>
+        <div class="orbit-photo-card"><img src="https://images.unsplash.com/photo-1518199266791-5375a83190b7?q=80&w=300&auto=format&fit=crop" alt="Photo 5"></div>
+        <div class="orbit-photo-card"><img src="https://images.unsplash.com/photo-1494774157365-9e04c6720e47?q=80&w=300&auto=format&fit=crop" alt="Photo 6"></div>
+        <div class="orbit-photo-card"><img src="https://images.unsplash.com/photo-1529156069898-49953e39b3ac?q=80&w=300&auto=format&fit=crop" alt="Photo 7"></div>
+        <div class="orbit-photo-card"><img src="https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?q=80&w=300&auto=format&fit=crop" alt="Photo 8"></div>
+        <div class="orbit-photo-card"><img src="https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&w=300&auto=format&fit=crop" alt="Photo 9"></div>
+        <div class="orbit-photo-card"><img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=300&auto=format&fit=crop" alt="Photo 10"></div>
+    </div>
+
+    <!-- KHUNG CHỨA LỜI NHẮN -->
+    <div class="message-container" id="messageContainer"></div>
+
+    <canvas id="canvas"></canvas>
+
+    <script>
+        // --- DANH SÁCH LỜI NHẮN CHÚC 20/10 ---
+        const wishes = [
+            "Chúc em ngày 20-10 thật vui vẻ",
+            "Chúc cho em những năm tháng sau này",
+            "hạnh phúc nhân đôi.",
+            "Chúc cho em<br>những năm tháng sau này<br>thật hạnh phúc<br>bên anh",
+            "Em iu ơi<br>chúc em có tất cả, có anh!",
+            "P/S: Làm người yêu anh nhé hí hí"
+        ];
+
+        let currentWishIndex = 0;
+        const container = document.getElementById('messageContainer');
+
+        function showNextWish() {
+            if (currentWishIndex >= wishes.length) return;
+
+            const textDiv = document.createElement('div');
+            textDiv.className = 'wish-text';
+            if (currentWishIndex === wishes.length - 1) {
+                textDiv.classList.add('ps-style');
+            }
+            
+            textDiv.innerHTML = wishes[currentWishIndex];
+            container.appendChild(textDiv);
+
+            setTimeout(() => {
+                textDiv.classList.add('active');
+            }, 100);
+
+            setTimeout(() => {
+                textDiv.classList.remove('active');
+                textDiv.classList.add('fade-out');
+                setTimeout(() => {
+                    textDiv.remove();
+                }, 1000);
+            }, 3500);
+
+            currentWishIndex++;
+
+            if (currentWishIndex < wishes.length) {
+                setTimeout(showNextWish, 4200);
+            }
+        }
+
+        setTimeout(showNextWish, 1500);
+
+        // --- XỬ LÝ ÂM THANH .MP4 ---
+        const bgMedia = document.getElementById('bgMedia');
+        bgMedia.volume = 1.0;
+
+        function tryPlayMedia() {
+            bgMedia.play().catch(() => {});
+        }
+        window.addEventListener('load', tryPlayMedia);
+        ['click', 'touchstart', 'keydown'].forEach(evt => {
+            window.addEventListener(evt, () => {
+                if (bgMedia.paused) {
+                    bgMedia.play().catch(() => {});
+                }
+            });
+        });
+
+        // --- CẤU HÌNH CANVAS & HỆ THỐNG HIỆU ỨNG 3D ---
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+
+        let width, height, dpr, sceneScale;
+        function resize() {
+            dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width * dpr;
+            canvas.height = height * dpr;
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            sceneScale = Math.min(width, height) / 680;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        const FOV = 680;
+        const CAMERA_Z = 620;
+
+        const HEART_CENTER_Y = -155; 
+        const BASE_FLOOR_Y   =  275; 
+
+        const HEART_PETAL_COUNT  = 1850; 
+        const RISING_PETAL_COUNT = 400;  
+        const BASE_PETAL_COUNT   = 1100; 
+        const BG_FALLING_COUNT   = 140;   
+
+        const PETAL_PALETTE = [
+            { fill: '#e0115f', edge: '#ff8da1' },
+            { fill: '#ff1654', edge: '#ffb3c6' },
+            { fill: '#c9184a', edge: '#ff758f' },
+            { fill: '#ff4d6d', edge: '#ffccd5' },
+            { fill: '#a4133c', edge: '#ff4d6d' },
+            { fill: '#ff0a54', edge: '#ff99ac' },
+            { fill: '#ff758f', edge: '#fff0f3' }
+        ];
+
+        // --- HỆ THỐNG CÁNH HOA RƠI PHỦ TOÀN MÀN HÌNH ---
+        class BackgroundFallingPetal {
+            constructor() {
+                this.reset(true);
+            }
+
+            reset(isInit = false) {
+                this.x = (Math.random() - 0.5) * width * 2.0; 
+                this.y = isInit ? Math.random() * height : -50;
+                this.z = -150 - Math.random() * 500; 
+                this.vy = 0.8 + Math.random() * 1.4;
+                this.vx = (Math.random() - 0.5) * 1.2;
+                this.size = 2.5 + Math.random() * 3.2;
+                this.rot = Math.random() * Math.PI * 2;
+                this.rotSpeed = (Math.random() - 0.5) * 0.04;
+                this.alpha = 0.5 + Math.random() * 0.35; 
+                this.color = PETAL_PALETTE[Math.floor(Math.random() * PETAL_PALETTE.length)].fill;
+            }
+
+            update() {
+                this.y += this.vy;
+                this.x += this.vx + Math.sin(this.y * 0.01) * 0.8;
+                this.rot += this.rotSpeed;
+
+                if (this.y > height + 50) {
+                    this.reset(false);
+                }
+            }
+
+            draw() {
+                const depth = FOV + this.z + CAMERA_Z;
+                if (depth <= 50) return;
+                const scale = FOV / depth;
+                const screenX = width / 2 + this.x * scale;
+                const screenY = height / 2 + this.y * scale;
+                const r = this.size * scale;
+
+                ctx.save();
+                ctx.translate(screenX, screenY);
+                ctx.rotate(this.rot);
+                ctx.globalAlpha = this.alpha;
+                ctx.fillStyle = this.color;
+
+                ctx.beginPath();
+                ctx.ellipse(0, 0, r, r * 0.65, 0, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        function get3DHeartPoint() {
+            const u = Math.random() * Math.PI * 2;
+            const v = (Math.random() - 0.5) * Math.PI;
+
+            const hx = 17.2 * Math.pow(Math.sin(u), 3);
+            const hy = -(13 * Math.cos(u) - 5 * Math.cos(2 * u) - 2 * Math.cos(3 * u) - Math.cos(4 * u) - 2.5);
+
+            const cosV = Math.cos(v);
+            const sinV = Math.sin(v);
+            const shellProfile = Math.pow(Math.abs(cosV), 0.55);
+
+            const thickness = 0.92 + Math.random() * 0.14;
+            const heartSize = 9.8 * thickness;
+
+            const x = hx * shellProfile * heartSize;
+            const y = hy * shellProfile * heartSize + HEART_CENTER_Y;
+            const lobeDepth = 10.2 * (0.35 + 0.65 * Math.pow(Math.abs(Math.sin(u)), 0.8));
+            const z = sinV * lobeDepth * heartSize;
+
+            return { x, y, z };
+        }
+
+        class RosePetal {
+            constructor(role) {
+                this.role = role; 
+                this.palette = PETAL_PALETTE[Math.floor(Math.random() * PETAL_PALETTE.length)];
+                this.init(true);
+            }
+
+            init(initialRandom = false) {
+                this.pitch = Math.random() * Math.PI * 2;
+                this.yaw   = Math.random() * Math.PI * 2;
+                this.roll  = Math.random() * Math.PI * 2;
+
+                this.pitchSpeed = (Math.random() - 0.5) * 0.016;
+                this.yawSpeed   = (Math.random() - 0.5) * 0.016;
+                this.rollSpeed  = (Math.random() - 0.5) * 0.012;
+
+                this.flutterPhase = Math.random() * Math.PI * 2;
+
+                if (this.role === 'base') {
+                    const rNorm = Math.pow(Math.random(), 0.62);
+                    this.baseRadius = 35 + rNorm * 395;
+                    this.angle = Math.random() * Math.PI * 2;
+                    this.angularSpeed = (0.0025 + (1 - rNorm) * 0.0042) * (0.85 + Math.random() * 0.3);
+                    this.yOffset = (Math.random() - 0.5) * 18;
+                    this.size = 3.8 + Math.random() * 3.8;
+                } 
+                else if (this.role === 'rising') {
+                    this.progress = initialRandom ? Math.random() : 0;
+                    this.riseSpeed = 0.0005 + Math.random() * 0.0006;
+                    this.angle = Math.random() * Math.PI * 2;
+                    this.angularSpeed = 0.007 + Math.random() * 0.006;
+                    this.startRadius = 25 + Math.random() * 210;
+
+                    const target = get3DHeartPoint();
+                    this.tx = target.x;
+                    this.ty = target.y;
+                    this.tz = target.z;
+                    this.size = 4.6 + Math.random() * 4.2;
+                } 
+                else {
+                    this.progress = initialRandom ? Math.random() : 0;
+                    this.riseSpeed = 0.00045 + Math.random() * 0.00055;
+                    this.angle = Math.random() * Math.PI * 2;
+                    this.angularSpeed = 0.006 + Math.random() * 0.005;
+                    this.startRadius = 30 + Math.random() * 180;
+
+                    const target = get3DHeartPoint();
+                    this.tx = target.x;
+                    this.ty = target.y;
+                    this.tz = target.z;
+                    this.size = 3.9 + Math.random() * 3.4;
+                }
+            }
+
+            update(heartRotY, beatScale, time) {
+                this.pitch += this.pitchSpeed;
+                this.yaw   += this.yawSpeed;
+                this.roll  += this.rollSpeed;
+
+                if (this.role === 'base') {
+                    this.angle += this.angularSpeed;
+                    const wave = Math.sin(this.angle * 2 + time * 0.8 + this.flutterPhase) * 5.5;
+                    const tiltY = Math.sin(this.angle) * (this.baseRadius * 0.075);
+                    this.x = Math.cos(this.angle) * this.baseRadius * 1.25;
+                    this.z = Math.sin(this.angle) * this.baseRadius;
+                    this.y = BASE_FLOOR_Y + this.yOffset + wave + tiltY;
+                    this.alpha = 0.9;
+                } 
+                else if (this.role === 'rising' || this.role === 'heart') {
+                    this.progress += this.riseSpeed;
+                    this.angle += this.angularSpeed;
+
+                    if (this.progress >= 1) {
+                        this.progress = 1; 
+                    }
+
+                    const p = this.progress;
+                    const smoothY = p < 0.5 
+                        ? 2 * p * p 
+                        : 1 - Math.pow(-2 * p + 2, 2) / 2;
+
+                    const funnelEnvelope = (1 - p) * (1 - p * 0.42);
+                    const sway = Math.sin(p * Math.PI * 3 + time * 0.7 + this.flutterPhase) * 18;
+                    const currentRadius = this.startRadius * funnelEnvelope + 14 * Math.sin(p * Math.PI);
+
+                    const windX = Math.cos(this.angle) * currentRadius * 1.15 + sway;
+                    const windZ = Math.sin(this.angle) * currentRadius;
+                    const windY = BASE_FLOOR_Y - smoothY * (BASE_FLOOR_Y - (HEART_CENTER_Y + 95));
+
+                    const cosH = Math.cos(heartRotY);
+                    const sinH = Math.sin(heartRotY);
+                    const hX = (this.tx * cosH - this.tz * sinH) * beatScale;
+                    const hZ = (this.tx * sinH + this.tz * cosH) * beatScale;
+                    const hY = HEART_CENTER_Y + (this.ty - HEART_CENTER_Y) * beatScale;
+
+                    const heartLock = Math.min(1, p * 1.35);
+                    this.x = windX * (1 - heartLock) + hX * heartLock;
+                    this.y = windY * (1 - heartLock) + hY * heartLock;
+                    this.z = windZ * (1 - heartLock) + hZ * heartLock;
+
+                    if (p < 0.08) {
+                        this.alpha = p / 0.08;
+                    } else {
+                        this.alpha = 0.98;
+                    }
+                }
+            }
+
+            draw() {
+                const scaledX = this.x * sceneScale;
+                const scaledY = this.y * sceneScale;
+                const scaledZ = this.z * sceneScale;
+
+                const depth = FOV + scaledZ + CAMERA_Z;
+                if (depth <= 60) return;
+
+                const perspective = FOV / depth;
+                const screenX = width / 2 + scaledX * perspective;
+                const screenY = height / 2 + scaledY * perspective;
+                const r = this.size * sceneScale * perspective;
+
+                const depthBrightness = Math.max(0.45, Math.min(1.0, 1.15 - (scaledZ / (310 * sceneScale)) * 0.35));
+
+                ctx.save();
+                ctx.translate(screenX, screenY);
+                ctx.rotate(this.roll);
+
+                const tiltX = 0.38 + 0.62 * Math.abs(Math.cos(this.pitch));
+                const tiltY = 0.45 + 0.55 * Math.abs(Math.sin(this.yaw));
+                ctx.scale(tiltX, tiltY);
+
+                ctx.globalAlpha = this.alpha * depthBrightness;
+
+                ctx.beginPath();
+                ctx.moveTo(0, r * 1.15);
+                ctx.bezierCurveTo(-r * 1.25, r * 0.55, -r * 1.35, -r * 0.75, -r * 0.28, -r * 1.05);
+                ctx.quadraticCurveTo(0, -r * 0.82, r * 0.28, -r * 1.05);
+                ctx.bezierCurveTo(r * 1.35, -r * 0.75, r * 1.25, r * 0.55, 0, r * 1.15);
+                ctx.closePath();
+
+                ctx.fillStyle = this.palette.fill;
+                ctx.fill();
+
+                ctx.lineWidth = Math.max(0.6, 0.85 * perspective);
+                ctx.strokeStyle = this.palette.edge;
+                ctx.stroke();
+
+                ctx.restore();
+            }
+        }
+
+        // --- ĐIỀU KHIỂN 10 KHUNG ẢNH VỚI HIỆU ỨNG KHỞI ĐẦU GIÓ CUỐN XOÁT TỪ NỀN HOA ---
+        const orbitCards = document.querySelectorAll('.orbit-photo-card');
+        const numCards = orbitCards.length;
+        const orbitData = [];
+
+        orbitCards.forEach((card, index) => {
+            orbitData.push({
+                element: card,
+                angleOffset: (index / numCards) * Math.PI * 2,
+                orbitRadiusX: 340 + (index % 3) * 60, 
+                orbitRadiusY: 160 + (index % 2) * 40, 
+                speed: 0.003 + (index % 3) * 0.0006,
+                verticalBob: index * 0.6
+            });
+        });
+
+        let introTimer = 0;
+
+        function updateOrbitPhotos(time) {
+            const centerX = width / 2;
+            const centerY = height / 2 + (HEART_CENTER_Y * sceneScale * 0.5);
+
+            if (introTimer < 4.5) {
+                introTimer += 0.016; 
+            }
+            const introProgress = Math.min(1, introTimer / 4.5);
+            const easeOutProgress = 1 - Math.pow(1 - introProgress, 3);
+
+            const sortedCards = orbitData.map(item => {
+                const angle = time * item.speed * 40 + item.angleOffset;
+                
+                const targetX = Math.cos(angle) * item.orbitRadiusX * sceneScale;
+                const targetZ = Math.sin(angle) * item.orbitRadiusX * 0.3 * sceneScale; 
+                const targetY = Math.sin(time * 1.5 + item.verticalBob) * 25 + Math.sin(angle) * item.orbitRadiusY * sceneScale;
+
+                const startY = BASE_FLOOR_Y * sceneScale;
+                const startX = Math.cos(angle + time * 2) * 80 * sceneScale;
+                const startZ = -200;
+
+                const startScaleFactor = 0.2 + 0.8 * easeOutProgress;
+
+                const x = startX * (1 - easeOutProgress) + targetX * easeOutProgress;
+                const y = startY * (1 - easeOutProgress) + targetY * easeOutProgress;
+                const z = startZ * (1 - easeOutProgress) + targetZ * easeOutProgress;
+
+                const depth = FOV + z + CAMERA_Z;
+                const scale = (FOV / depth) * startScaleFactor;
+
+                return {
+                    ...item,
+                    x, y, z, scale,
+                    screenX: centerX + x * (FOV / depth) - (item.element.offsetWidth / 2),
+                    screenY: centerY + y * (FOV / depth) - (item.element.offsetHeight / 2)
+                };
+            });
+
+            sortedCards.sort((a, b) => a.z - b.z);
+
+            sortedCards.forEach((item, idx) => {
+                const card = item.element;
+                card.style.transform = `translate3d(${item.screenX}px, ${item.screenY}px, 0) scale(${Math.max(0.2, item.scale)})`;
+                card.style.zIndex = idx < 5 ? 1 : 2; 
+                const frontProximity = item.z > 0 ? (item.z / 150) : 0;
+                card.style.opacity = Math.max(0.2, Math.min(0.95, introProgress * (0.6 + frontProximity * 0.2)));
+            });
+        }
+
+        const bgFallingPetals = [];
+        for (let i = 0; i < BG_FALLING_COUNT; i++) {
+            bgFallingPetals.push(new BackgroundFallingPetal());
+        }
+
+        const petals = [];
+        for (let i = 0; i < BASE_PETAL_COUNT; i++) {
+            petals.push(new RosePetal('base'));
+        }
+        for (let i = 0; i < RISING_PETAL_COUNT; i++) {
+            petals.push(new RosePetal('rising'));
+        }
+        for (let i = 0; i < HEART_PETAL_COUNT; i++) {
+            petals.push(new RosePetal('heart'));
+        }
+
+        let time = 0;
+        let heartRotY = 0;
+
+        function animate() {
+            ctx.clearRect(0, 0, width, height);
+
+            time += 0.012;
+            heartRotY += 0.005; 
+
+            updateOrbitPhotos(time);
+
+            for (let i = 0; i < bgFallingPetals.length; i++) {
+                bgFallingPetals[i].update();
+                bgFallingPetals[i].draw();
+            }
+
+            const beatScale = 1 + Math.pow(Math.sin(time * 1.8), 6) * 0.045;
+
+            for (let i = 0; i < petals.length; i++) {
+                petals[i].update(heartRotY, beatScale, time);
+            }
+
+            petals.sort((a, b) => b.z - a.z);
+
+            for (let i = 0; i < petals.length; i++) {
+                petals[i].draw();
+            }
+
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+    </script>
+</body>
+</html>
